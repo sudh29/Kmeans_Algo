@@ -105,19 +105,43 @@ def cluster_customers(data_train, data_test):
     # print(silhouette_score_4_test)
 
     # Based on kmeans_opt and sd_test
-    labels_predicted =kmeans_opt.fit(sd_test).labels_
+    test_kmeans = kmeans_opt.fit(sd_test)
+    labels_predicted = test_kmeans.labels_
     # print(labels_predicted)
 
-    # return {
-    #     "sd_train": sd_train,
-    #     "sd_test": sd_test,
-    #     "wcss": wcss_list,
-    #     "kmeans_opt": kmeans_opt,
-    #     "silhouette": silhouette_score_opt,
-    #     "completeness": (silhouette_score_4, silhouette_score_4_test),
-    #     "labels_predicted": labels_predicted,
-    #     "max_opt": None,
-    # }
+    # first observation from sd_test
+    first_ob = (sd_test[0:1]).to_numpy()  
+    cluster_centers = pd.DataFrame(test_kmeans.cluster_centers_ ,columns = df_train.columns).to_numpy()
+
+    max_opt_dist={}
+    euclidean_dist = []
+    for i in range(6):
+        #calculate Euclidean distance between the two vectors 
+        e_distance=np.sqrt(np.sum(np.square(np.subtract(cluster_centers[i],first_ob))))
+        #calculate Euclidean distance between the two vectors using numpy
+        # e_distance2=np.linalg.norm(arr2[i]-arr1)
+        euclidean_dist.append(e_distance)
+        max_opt_dist[e_distance]=i
+    # print(max_opt_dist)
+    euclidean_dist.sort(reverse=True)
+    max_opt=[ max_opt_dist[i] for i in euclidean_dist]
+    # print(max_opt)
+    
+    return {
+        "sd_train": sd_train,
+        "sd_test": sd_test,
+        "wcss": wcss_list,
+        "kmeans_opt": kmeans_opt,
+        "silhouette": silhouette_score_opt,
+        "completeness": (silhouette_score_4, silhouette_score_4_test),
+        "labels_predicted": labels_predicted,
+        "max_opt": max_opt,
+    }
 
 
-cluster_customers(data_train,data_test)
+final_result = cluster_customers(data_train,data_test)
+print("************* Output ***************")
+for k, v in final_result.items():
+    print(k)
+    print(v)
+    print("----------------------------------------------------")
